@@ -1,0 +1,15 @@
+# E-commerce sites to analyze
+# Add one URL per line
+# Lines starting with # are ignored
+
+# Example sites (replace with your list of 100 sites)
+amazon.com
+ebay.com
+walmart.com
+target.com
+bestbuy.com
+etsy.com
+wayfair.com
+homedepot.com
+lowes.com
+costco.com
