@@ -1,6 +1,8 @@
 """MoltBot/OpenClaw WebSocket client for Python."""
 
 import asyncio
+import hashlib
+import hmac
 import json
 import uuid
 from dataclasses import dataclass, field
@@ -35,25 +37,53 @@ class MoltBotClient:
     async def connect(self) -> bool:
         """Connect to MoltBot Gateway."""
         try:
-            self.ws = await websockets.connect(self.config.gateway_url)
+            # Token must be in both URL query AND params.auth per protocol
+            url = self.config.gateway_url
+            if self.config.auth_token:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}token={self.config.auth_token}"
 
-            # Send connect frame (required first message per protocol spec)
+            self.ws = await websockets.connect(
+                url,
+                additional_headers={
+                    "Origin": "http://127.0.0.1:18789",
+                },
+            )
+
+            # Wait for challenge first (server sends it immediately on connect)
+            response = await self.ws.recv()
+            data = json.loads(response)
+
+            nonce = None
+            ts = None
+
+            # Handle challenge if present
+            if data.get("type") == "event" and data.get("event") == "connect.challenge":
+                payload = data.get("payload", {})
+                nonce = payload.get("nonce")
+                ts = payload.get("ts")
+
+            # Try webchat/control-ui client type (simpler auth)
             connect_msg = {
                 "type": "req",
-                "id": self._next_id(),
+                "id": str(self._next_id()),
                 "method": "connect",
                 "params": {
                     "minProtocol": 3,
                     "maxProtocol": 3,
-                    "role": "operator",
-                    "scopes": ["operator.read", "operator.write"],
-                    "device": {
-                        "id": self.config.device_id,
-                        "name": self.config.device_name,
+                    "client": {
+                        "id": "webchat",
+                        "version": "1.0.0",
+                        "platform": "web",
+                        "mode": "ui",
                     },
+                    "caps": [],
+                    "locale": "en-US",
+                    "userAgent": "python-moltbot-client/1.0.0",
                 },
             }
 
+            # Auth token in params.auth
             if self.config.auth_token:
                 connect_msg["params"]["auth"] = {"token": self.config.auth_token}
 
@@ -63,12 +93,21 @@ class MoltBotClient:
             response = await self.ws.recv()
             data = json.loads(response)
 
+            # Accept various success formats
             if data.get("type") == "res" and data.get("ok"):
                 self.connected = True
                 self._receive_task = asyncio.create_task(self._receive_loop())
                 return True
+            elif data.get("type") == "connected" or data.get("type") == "welcome":
+                self.connected = True
+                self._receive_task = asyncio.create_task(self._receive_loop())
+                return True
+            elif data.get("ok") or data.get("success"):
+                self.connected = True
+                self._receive_task = asyncio.create_task(self._receive_loop())
+                return True
             else:
-                error = data.get("error", "Unknown error")
+                error = data.get("error", data)
                 raise ConnectionError(f"MoltBot connection failed: {error}")
 
         except Exception as e:
@@ -118,6 +157,7 @@ class MoltBotClient:
                 elif msg_type == "event":
                     # Server-push event
                     event_name = data.get("event")
+                    print(f"[EVENT] {event_name}: {data.get('payload')}")
                     if event_name in self._event_handlers:
                         for handler in self._event_handlers[event_name]:
                             try:
@@ -135,7 +175,7 @@ class MoltBotClient:
         if not self.connected:
             raise ConnectionError("Not connected to MoltBot Gateway")
 
-        req_id = self._next_id()
+        req_id = str(self._next_id())  # Must be string
         msg = {
             "type": "req",
             "id": req_id,
@@ -183,14 +223,58 @@ class MoltBotClient:
         })
 
     async def invoke_agent(self, prompt: str, tools: list[str] | None = None) -> dict:
-        """Invoke an agent with a prompt."""
+        """Invoke an agent with a prompt and wait for response."""
+        session_key = "agent:main:main"
         params = {
-            "prompt": prompt,
+            "message": prompt,
+            "sessionKey": session_key,
             "idempotencyKey": uuid.uuid4().hex,
         }
-        if tools:
-            params["tools"] = tools
-        return await self.request("agent", params, timeout=120.0)
+
+        # Create a future to wait for completion
+        response_future = asyncio.get_event_loop().create_future()
+        run_id = None
+
+        async def chat_handler(payload):
+            nonlocal run_id
+            # Check if this is a completed reply to our message
+            if payload.get("runId") == run_id and payload.get("state") == "final":
+                if not response_future.done():
+                    response_future.set_result(payload)
+
+        # Register handler for chat events
+        self.on_event("chat", chat_handler)
+
+        try:
+            # Send the message
+            result = await self.request("chat.send", params, timeout=30.0)
+            run_id = result.get("runId")
+
+            # Wait for completion
+            await asyncio.wait_for(response_future, timeout=180.0)
+
+            # Fetch the actual response from chat history
+            history = await self.request("chat.history", {
+                "sessionKey": session_key,
+                "limit": 5,
+            }, timeout=10.0)
+
+            # Find the assistant's response (last message)
+            messages = history.get("messages", [])
+            for msg in reversed(messages):
+                if msg.get("role") == "assistant":
+                    return {"content": msg.get("content", ""), "runId": run_id}
+
+            return {"content": "", "runId": run_id, "error": "No assistant response found"}
+
+        except asyncio.TimeoutError:
+            return {"status": "timeout", "runId": run_id}
+        finally:
+            # Remove handler
+            if "chat" in self._event_handlers:
+                self._event_handlers["chat"] = [
+                    h for h in self._event_handlers["chat"] if h != chat_handler
+                ]
 
     async def invoke_node(self, command: str, params: dict | None = None) -> dict:
         """Invoke a node command."""

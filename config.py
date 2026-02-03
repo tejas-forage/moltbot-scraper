@@ -4,7 +4,7 @@ from pathlib import Path
 
 # MoltBot Gateway settings
 MOLTBOT_GATEWAY_URL = "ws://127.0.0.1:18789"
-MOLTBOT_AUTH_TOKEN = "6ef8746eb7b4061271da65b9273f61b0aac1ec17bd6f0edd"
+MOLTBOT_AUTH_TOKEN = "8613693b9f217bc8e7e8b72c8eab3196800c630042f5f7b8"
 
 # Paths
 BASE_DIR = Path(__file__).parent

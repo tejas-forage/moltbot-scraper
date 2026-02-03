@@ -92,6 +92,9 @@ class MoltBotScraper:
                 tools=["agent-browser", "playwright-cli"],  # Request browser tools
             )
 
+            # Debug: print raw response
+            print(f"[DEBUG] Agent response for {domain}: {result}")
+
             # Parse the agent's response
             return self._parse_agent_response(url, domain, result)
 
@@ -183,11 +186,18 @@ class MoltBotScraper:
         return await asyncio.gather(*tasks)
 
 
-async def check_moltbot_connection(config: MoltBotConfig | None = None) -> bool:
-    """Check if MoltBot Gateway is running and accessible."""
+async def check_moltbot_connection(config: MoltBotConfig | None = None) -> tuple[bool, str | None]:
+    """Check if MoltBot Gateway is running and accessible.
+
+    Returns (success, error_message).
+    """
     try:
-        async with MoltBotClient(config) as client:
-            await client.health()
-            return True
-    except Exception:
-        return False
+        client = MoltBotClient(config)
+        await client.connect()
+        await client.health()
+        await client.disconnect()
+        return True, None
+    except Exception as e:
+        import traceback
+        error_detail = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
+        return False, error_detail

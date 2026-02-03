@@ -89,7 +89,7 @@ def print_summary(results: list[SiteAnalysis]):
     table.add_column("Issues", style="red")
 
     for r in results:
-        ecom = "✓" if r.is_ecommerce else "✗"
+        ecom = "Yes" if r.is_ecommerce else "No"
         issues = ", ".join(i.value for i in r.security_issues) if r.security_issues else "-"
 
         table.add_row(
@@ -132,8 +132,11 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
     # Check MoltBot connection
     console.print("\n[yellow]Checking MoltBot Gateway connection...[/yellow]")
 
-    if not await check_moltbot_connection(config):
+    connected, error = await check_moltbot_connection(config)
+    if not connected:
         console.print("[red]Error: Cannot connect to MoltBot Gateway![/red]")
+        if error:
+            console.print(f"\n[red]Details:[/red]\n{error}")
         console.print("\nMake sure MoltBot is running:")
         console.print("  1. Install: [cyan]npm install -g openclaw@latest[/cyan]")
         console.print("  2. Start:   [cyan]openclaw gateway --port 18789[/cyan]")
@@ -141,7 +144,7 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
         console.print("  [cyan]python standalone.py[/cyan]")
         return
 
-    console.print("[green]✓ Connected to MoltBot Gateway[/green]\n")
+    console.print("[green]Connected to MoltBot Gateway[/green]\n")
 
     # Load sites
     if sites_file:
