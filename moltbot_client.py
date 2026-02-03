@@ -37,16 +37,19 @@ class MoltBotClient:
         try:
             self.ws = await websockets.connect(self.config.gateway_url)
 
-            # Send connect frame (required first message)
+            # Send connect frame (required first message per protocol spec)
             connect_msg = {
                 "type": "req",
                 "id": self._next_id(),
                 "method": "connect",
                 "params": {
+                    "minProtocol": 3,
+                    "maxProtocol": 3,
+                    "role": "operator",
+                    "scopes": ["operator.read", "operator.write"],
                     "device": {
                         "id": self.config.device_id,
                         "name": self.config.device_name,
-                        "type": "client",
                     },
                 },
             }

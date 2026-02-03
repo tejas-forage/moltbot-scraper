@@ -12,7 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 from rich.table import Table
 from rich.panel import Panel
 
-from config import DATA_DIR, OUTPUT_DIR
+from config import DATA_DIR, OUTPUT_DIR, MOLTBOT_GATEWAY_URL, MOLTBOT_AUTH_TOKEN
 from moltbot_scraper import MoltBotScraper, check_moltbot_connection
 from moltbot_client import MoltBotConfig
 from models import SiteAnalysis
@@ -123,10 +123,16 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
         border_style="blue"
     ))
 
+    # Configure MoltBot client
+    config = MoltBotConfig(
+        gateway_url=MOLTBOT_GATEWAY_URL,
+        auth_token=MOLTBOT_AUTH_TOKEN,
+    )
+
     # Check MoltBot connection
     console.print("\n[yellow]Checking MoltBot Gateway connection...[/yellow]")
 
-    if not await check_moltbot_connection():
+    if not await check_moltbot_connection(config):
         console.print("[red]Error: Cannot connect to MoltBot Gateway![/red]")
         console.print("\nMake sure MoltBot is running:")
         console.print("  1. Install: [cyan]npm install -g openclaw@latest[/cyan]")
@@ -156,8 +162,7 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
         console.print("[red]No sites to analyze[/red]")
         return
 
-    # Configure MoltBot client
-    config = MoltBotConfig()
+    # Override gateway URL if provided
     if gateway_url:
         config.gateway_url = gateway_url
 

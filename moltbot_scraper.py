@@ -183,10 +183,10 @@ class MoltBotScraper:
         return await asyncio.gather(*tasks)
 
 
-async def check_moltbot_connection() -> bool:
+async def check_moltbot_connection(config: MoltBotConfig | None = None) -> bool:
     """Check if MoltBot Gateway is running and accessible."""
     try:
-        async with MoltBotClient() as client:
+        async with MoltBotClient(config) as client:
             await client.health()
             return True
     except Exception:
