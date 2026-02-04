@@ -124,10 +124,82 @@ class PageAnalyzer:
                 issues.append(SecurityIssue.BOT_PROTECTION)
                 break
 
+        # If the page appears blocked but no specific indicator matched, flag it
+        if not issues and self._is_blocked_page():
+            issues.append(SecurityIssue.BLOCKED)
+
         return list(set(issues))
+
+    # Known e-commerce domains (used when page content is blocked)
+    KNOWN_ECOMMERCE_DOMAINS = {
+        "amazon.com", "www.amazon.com",
+        "ebay.com", "www.ebay.com",
+        "walmart.com", "www.walmart.com",
+        "target.com", "www.target.com",
+        "bestbuy.com", "www.bestbuy.com",
+        "etsy.com", "www.etsy.com",
+        "wayfair.com", "www.wayfair.com",
+        "homedepot.com", "www.homedepot.com",
+        "lowes.com", "www.lowes.com",
+        "costco.com", "www.costco.com",
+        "macys.com", "www.macys.com",
+        "nordstrom.com", "www.nordstrom.com",
+        "newegg.com", "www.newegg.com",
+        "overstock.com", "www.overstock.com",
+        "zappos.com", "www.zappos.com",
+        "aliexpress.com", "www.aliexpress.com",
+        "shopify.com", "www.shopify.com",
+        "wish.com", "www.wish.com",
+        "sephora.com", "www.sephora.com",
+        "nike.com", "www.nike.com",
+        "adidas.com", "www.adidas.com",
+    }
+
+    def _is_blocked_page(self) -> bool:
+        """Check if the page content indicates a block/captcha/redirect page."""
+        title = self.get_page_title().lower()
+        blocked_title_indicators = [
+            "access denied", "access to this page has been denied",
+            "just a moment", "checking your browser",
+            "attention required", "pardon our interruption",
+            "please verify", "are you a robot",
+            "select your country", "choose your country",
+            "select your region", "select your location",
+            "international:", "page not available",
+            "sorry! something went wrong",
+            "robot check", "bot detection",
+        ]
+        if any(bi in title for bi in blocked_title_indicators):
+            return True
+
+        # Empty or very short title on a known domain suggests block
+        if not title and len(self.html) < 5000:
+            return True
+
+        # Very small page is likely a block/redirect page
+        if len(self.html) < 2000:
+            return True
+
+        # Check body content for block indicators
+        html_lower = self.html.lower()
+        blocked_body_indicators = [
+            "enter the characters you see below",
+            "sorry, we just need to make sure you're not a robot",
+            "type the characters you see in this image",
+            "automated access to this page",
+            "please enable cookies",
+            "please complete the security check",
+        ]
+        return any(bi in html_lower for bi in blocked_body_indicators)
 
     def is_ecommerce_site(self) -> bool:
         """Determine if this appears to be an e-commerce site."""
+        # If the page is blocked, fall back to known domain list
+        if self._is_blocked_page():
+            base_domain = self.domain.removeprefix("www.")
+            if base_domain in self.KNOWN_ECOMMERCE_DOMAINS:
+                return True
+
         indicators = 0
 
         # Check for product URLs
@@ -162,6 +234,11 @@ class PageAnalyzer:
         # Check for price patterns
         if re.search(r"[\$€£]\s*\d+[.,]\d{2}", self.html):
             indicators += 1
+
+        # Known e-commerce domains are always e-commerce
+        base_domain = self.domain.removeprefix("www.")
+        if base_domain in self.KNOWN_ECOMMERCE_DOMAINS:
+            return True
 
         return indicators >= 2
 

@@ -1,4 +1,4 @@
-"""Main entry point for the e-commerce site analyzer using MoltBot."""
+"""Main entry point for the e-commerce site analyzer."""
 
 import asyncio
 import json
@@ -13,8 +13,6 @@ from rich.table import Table
 from rich.panel import Panel
 
 from config import DATA_DIR, OUTPUT_DIR, MOLTBOT_GATEWAY_URL, MOLTBOT_AUTH_TOKEN
-from moltbot_scraper import MoltBotScraper, check_moltbot_connection
-from moltbot_client import MoltBotConfig
 from models import SiteAnalysis
 
 console = Console()
@@ -115,23 +113,43 @@ def print_summary(results: list[SiteAnalysis]):
     console.print(f"[bold]Sites with errors:[/bold] {errors}")
 
 
-async def main(sites_file: str | None = None, gateway_url: str | None = None):
-    """Run the e-commerce site analyzer using MoltBot."""
-    console.print(Panel.fit(
-        "[bold blue]E-commerce Site Analyzer[/bold blue]\n"
-        "[dim]Powered by MoltBot/OpenClaw[/dim]",
-        border_style="blue"
-    ))
+async def run_playwright(sites: list[str]) -> list[SiteAnalysis]:
+    """Run analysis using Playwright (real browser, real URLs)."""
+    from standalone import EcommerceScraper
 
-    # Configure MoltBot client
+    results = []
+    async with EcommerceScraper() as scraper:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Analyzing sites...", total=len(sites))
+
+            for site in sites:
+                progress.update(task, description=f"Analyzing {site[:40]}...")
+                result = await scraper.analyze_site(site)
+                results.append(result)
+                progress.advance(task)
+
+    return results
+
+
+async def run_moltbot(sites: list[str], gateway_url: str | None = None) -> list[SiteAnalysis]:
+    """Run analysis using MoltBot/OpenClaw agent."""
+    from moltbot_scraper import MoltBotScraper, check_moltbot_connection
+    from moltbot_client import MoltBotConfig
+
     config = MoltBotConfig(
         gateway_url=MOLTBOT_GATEWAY_URL,
         auth_token=MOLTBOT_AUTH_TOKEN,
     )
+    if gateway_url:
+        config.gateway_url = gateway_url
 
-    # Check MoltBot connection
     console.print("\n[yellow]Checking MoltBot Gateway connection...[/yellow]")
-
     connected, error = await check_moltbot_connection(config)
     if not connected:
         console.print("[red]Error: Cannot connect to MoltBot Gateway![/red]")
@@ -140,36 +158,10 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
         console.print("\nMake sure MoltBot is running:")
         console.print("  1. Install: [cyan]npm install -g openclaw@latest[/cyan]")
         console.print("  2. Start:   [cyan]openclaw gateway --port 18789[/cyan]")
-        console.print("\nOr run the standalone scraper:")
-        console.print("  [cyan]python standalone.py[/cyan]")
-        return
+        return []
 
     console.print("[green]Connected to MoltBot Gateway[/green]\n")
 
-    # Load sites
-    if sites_file:
-        sites_path = Path(sites_file)
-    else:
-        sites_path = DATA_DIR / "sites.txt"
-
-    if not sites_path.exists():
-        console.print(f"[yellow]No sites file found at {sites_path}[/yellow]")
-        console.print("Create a file with one URL per line, or pass a file path as argument.")
-        console.print(f"\nExample: python main.py {DATA_DIR}/sites.txt")
-        return
-
-    sites = load_sites(sites_path)
-    console.print(f"[green]Loaded {len(sites)} sites to analyze[/green]\n")
-
-    if not sites:
-        console.print("[red]No sites to analyze[/red]")
-        return
-
-    # Override gateway URL if provided
-    if gateway_url:
-        config.gateway_url = gateway_url
-
-    # Run analysis
     results = []
     async with MoltBotScraper(config=config) as scraper:
         with Progress(
@@ -187,6 +179,51 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
                 results.append(result)
                 progress.advance(task)
 
+    return results
+
+
+async def main():
+    """Run the e-commerce site analyzer."""
+    # Parse args
+    args = sys.argv[1:]
+    use_moltbot = "--moltbot" in args
+    args = [a for a in args if a != "--moltbot"]
+
+    sites_file = args[0] if args else None
+    gateway_url = args[1] if len(args) > 1 else None
+
+    mode_label = "MoltBot/OpenClaw" if use_moltbot else "Playwright"
+    console.print(Panel.fit(
+        f"[bold blue]E-commerce Site Analyzer[/bold blue]\n"
+        f"[dim]Powered by {mode_label}[/dim]",
+        border_style="blue"
+    ))
+
+    # Load sites
+    sites_path = Path(sites_file) if sites_file else DATA_DIR / "sites.txt"
+
+    if not sites_path.exists():
+        console.print(f"[yellow]No sites file found at {sites_path}[/yellow]")
+        console.print("Create a file with one URL per line, or pass a file path as argument.")
+        console.print(f"\nExample: python main.py {DATA_DIR}/sites.txt")
+        return
+
+    sites = load_sites(sites_path)
+    console.print(f"[green]Loaded {len(sites)} sites to analyze[/green]\n")
+
+    if not sites:
+        console.print("[red]No sites to analyze[/red]")
+        return
+
+    # Run analysis
+    if use_moltbot:
+        results = await run_moltbot(sites, gateway_url)
+    else:
+        results = await run_playwright(sites)
+
+    if not results:
+        return
+
     # Save and display results
     json_path, csv_path = save_results(results, OUTPUT_DIR)
 
@@ -198,6 +235,4 @@ async def main(sites_file: str | None = None, gateway_url: str | None = None):
 
 
 if __name__ == "__main__":
-    sites_file = sys.argv[1] if len(sys.argv) > 1 else None
-    gateway_url = sys.argv[2] if len(sys.argv) > 2 else None
-    asyncio.run(main(sites_file, gateway_url))
+    asyncio.run(main())

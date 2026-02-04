@@ -1,0 +1,223 @@
+[
+  {
+    "url": "https://amazon.com",
+    "domain": "amazon.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 87,
+    "listing_urls_sample": [
+      "https://amazon.com/s/?_encoding=UTF8&k=women%20watch&pd_rd_w=zvOEP&content-id=amzn1.sym.db94be39-53f1-4c79-89b2-88aa81be709e&pf_rd_p=db94be39-53f1-4c79-89b2-88aa81be709e&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_unk",
+      "https://amazon.com/s/?_encoding=UTF8&k=Xbox&pd_rd_w=Y5WOb&content-id=amzn1.sym.f4dce7c3-dfcf-41bb-8922-50be98bf1e86&pf_rd_p=f4dce7c3-dfcf-41bb-8922-50be98bf1e86&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_unk",
+      "https://amazon.com/s/?_encoding=UTF8&k=home%20decor&pd_rd_w=KSJfC&content-id=amzn1.sym.4da186f5-145b-4e27-9ae2-777c48d6d9cd&pf_rd_p=4da186f5-145b-4e27-9ae2-777c48d6d9cd&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=I8pnm&pd_rd_r=7e826c98-5a3a-4e50-8e7f-595c62092183&ref_=pd_hp_d_atf_unk",
+      "https://amazon.com/s/?_encoding=UTF8&k=fitness%20gear&pd_rd_w=0W8vQ&content-id=amzn1.sym.3fdbc1ee-e2a3-48ef-a93a-bce40e980706&pf_rd_p=3fdbc1ee-e2a3-48ef-a93a-bce40e980706&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_unk",
+      "https://amazon.com/s/?_encoding=UTF8&k=outdoor%20play%20toys&pd_rd_w=GDcvM&content-id=amzn1.sym.b378ed84-9ce7-4534-ab5a-a5a362ea6b4e&pf_rd_p=b378ed84-9ce7-4534-ab5a-a5a362ea6b4e&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_unk"
+    ],
+    "product_urls_count": 161,
+    "product_urls_sample": [
+      "https://amazon.com/International-Research-Olympiads-Official-Textbook/dp/B0DP5GVHRV/?_encoding=UTF8&pd_rd_w=hcr7q&content-id=amzn1.sym.e85ee24d-ce5e-479d-bdb3-28d6161095d7&pf_rd_p=e85ee24d-ce5e-479d-bdb3-28d6161095d7&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_exports-popular-this-season-with-similar-asins",
+      "https://amazon.com/dp/B0CHTVMXZJ?th=1?ref_=footer_reload_us",
+      "https://amazon.com/Arctix-Womens-Insulated-Medium-Regular/dp/B002V2ZMEO/?_encoding=UTF8&pd_rd_w=OIxUZ&content-id=amzn1.sym.9929d3ab-edb7-4ef5-a232-26d90f828fa5&pf_rd_p=9929d3ab-edb7-4ef5-a232-26d90f828fa5&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_crs_zg_bs_7141123011",
+      "https://amazon.com/Cracking-Coding-Interview-Programming-Questions/dp/0984782850/?_encoding=UTF8&pd_rd_w=hcr7q&content-id=amzn1.sym.e85ee24d-ce5e-479d-bdb3-28d6161095d7&pf_rd_p=e85ee24d-ce5e-479d-bdb3-28d6161095d7&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_exports-popular-this-season-with-similar-asins",
+      "https://amazon.com/Brawny-Square-Regular-Absorbent-Durable/dp/B0DFHMZ922/?_encoding=UTF8&pd_rd_w=43UHD&content-id=amzn1.sym.9929d3ab-edb7-4ef5-a232-26d90f828fa5&pf_rd_p=9929d3ab-edb7-4ef5-a232-26d90f828fa5&pf_rd_r=H27MYMYMNBMCSQ9J5HK5&pd_rd_wg=A4E4w&pd_rd_r=9c3c49e6-6600-4ca6-81de-c3915a1f02a3&ref_=pd_hp_d_btf_crs_zg_bs_284507"
+    ],
+    "has_product_pages": true,
+    "estimated_total_pages": 80,
+    "estimated_total_products": 1610,
+    "pagination_type": "next_page_link",
+    "security_issues": [],
+    "error_message": null,
+    "page_title": "Amazon.com. Spend less. Smile more.",
+    "load_time_seconds": 13.34
+  },
+  {
+    "url": "https://ebay.com",
+    "domain": "ebay.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 3,
+    "listing_urls_sample": [
+      "https://ebay.com/b/Home-Organization-Supplies/43502/bn_2311028",
+      "https://ebay.com/b/Art-Supplies/11783/bn_1855076",
+      "https://ebay.com/b/Beads-Jewelry-Making-Supplies/31723/bn_1860484"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 11,
+    "estimated_total_products": 229,
+    "pagination_type": "next_page_link",
+    "security_issues": [
+      "captcha"
+    ],
+    "error_message": null,
+    "page_title": "Electronics, Cars, Fashion, Collectibles & More | eBay",
+    "load_time_seconds": 14.07
+  },
+  {
+    "url": "https://walmart.com",
+    "domain": "walmart.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "next_page_link",
+    "security_issues": [
+      "bot_protection",
+      "captcha"
+    ],
+    "error_message": null,
+    "page_title": "Walmart | Save Money. Live better.",
+    "load_time_seconds": 12.55
+  },
+  {
+    "url": "https://target.com",
+    "domain": "target.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 47,
+    "listing_urls_sample": [
+      "https://target.com/c/baby/-/N-5xtly",
+      "https://target.com/pl/979177012",
+      "https://target.com/b/apple/-/N-5y3ej",
+      "https://target.com/l/target-circle-360/-/N-2rguk",
+      "https://target.com/c/valentine-s-day-deals/-/N-4bry1"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "captcha"
+    ],
+    "error_message": null,
+    "page_title": "Target : Expect More. Pay Less.",
+    "load_time_seconds": 9.91
+  },
+  {
+    "url": "https://bestbuy.com",
+    "domain": "bestbuy.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "blocked"
+    ],
+    "error_message": null,
+    "page_title": "Best Buy International: Select your Country - Best Buy",
+    "load_time_seconds": 19.83
+  },
+  {
+    "url": "https://etsy.com",
+    "domain": "etsy.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "bot_protection",
+      "captcha",
+      "blocked"
+    ],
+    "error_message": null,
+    "page_title": "etsy.com",
+    "load_time_seconds": 8.35
+  },
+  {
+    "url": "https://wayfair.com",
+    "domain": "wayfair.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "bot_protection",
+      "captcha"
+    ],
+    "error_message": null,
+    "page_title": "Access to this page has been denied",
+    "load_time_seconds": 13.12
+  },
+  {
+    "url": "https://homedepot.com",
+    "domain": "homedepot.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 52,
+    "listing_urls_sample": [
+      "https://homedepot.com/c/Customer_Support_Answers#cancel",
+      "https://homedepot.com/c/tool_and_truck_rental",
+      "https://homedepot.com/c/Product_Recalls",
+      "https://homedepot.com/b/Plumbing/N-5yc1vZbqew",
+      "https://homedepot.com/c/Terms_of_Use"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "next_page_link",
+    "security_issues": [
+      "bot_protection",
+      "captcha"
+    ],
+    "error_message": null,
+    "page_title": "The Home Depot",
+    "load_time_seconds": 14.41
+  },
+  {
+    "url": "https://lowes.com",
+    "domain": "lowes.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "bot_protection"
+    ],
+    "error_message": null,
+    "page_title": "Access Denied",
+    "load_time_seconds": 8.6
+  },
+  {
+    "url": "https://costco.com",
+    "domain": "costco.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "unknown",
+    "security_issues": [
+      "blocked"
+    ],
+    "error_message": "Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://costco.com/\nCall log:\n  - navigating to \"https://costco.com/\", waiting until \"domcontentloaded\"\n",
+    "page_title": "",
+    "load_time_seconds": 0.0
+  }
+]

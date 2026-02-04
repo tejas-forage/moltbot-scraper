@@ -30,13 +30,21 @@ PRODUCT_URL_PATTERNS = [
     r"/product/",
     r"/products/",
     r"/item/",
-    r"/p/",
-    r"/dp/",
+    r"/itm/",          # eBay
+    r"/ip/",           # Walmart
+    r"/p/[^/]+/\d+",   # Home Depot, generic with ID
+    r"/dp/",           # Amazon
+    r"/gp/product/",   # Amazon
     r"/pd/",
     r"/detail/",
     r"/goods/",
     r"-p-\d+",
     r"/sku/",
+    r"/listing/",      # Etsy
+    r"/buy/",
+    r"/A-\d+",         # Target product IDs
+    r"/-/p/A-",        # Target product pages
+    r"/site/[^/]+/\d+",  # BestBuy product pages
 ]
 
 LISTING_URL_PATTERNS = [
@@ -50,6 +58,15 @@ LISTING_URL_PATTERNS = [
     r"/search",
     r"/c/",
     r"/l/",
+    r"/s\?",           # Amazon search
+    r"/s/",            # Generic search path
+    r"/b\?",           # Amazon browse
+    r"/b/",            # Generic browse path
+    r"/gp/browse",     # Amazon
+    r"/departments/",
+    r"/dept/",
+    r"/pl/",           # Lowe's
+    r"/N-",            # Target faceted nav
 ]
 
 PAGINATION_SELECTORS = {
@@ -93,6 +110,11 @@ SECURITY_INDICATORS = {
         "hcaptcha",
         "g-recaptcha",
         "h-captcha",
+        "captcha-delivery",
+        "validate-form",
+        "type the characters",
+        "enter the characters",
+        "verify you are a human",
     ],
     "bot_protection": [
         "datadome",
@@ -100,5 +122,12 @@ SECURITY_INDICATORS = {
         "imperva",
         "akamai",
         "distil",
+        "kasada",
+        "shape security",
+        "bot-protection",
+        "are you a robot",
+        "automated access",
+        "access denied",
+        "robot or human",
     ],
 }

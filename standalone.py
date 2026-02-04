@@ -47,12 +47,15 @@ class EcommerceScraper:
 
     async def analyze_site(self, url: str) -> SiteAnalysis:
         """Analyze a single e-commerce site."""
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
         async with self.semaphore:
             return await self._analyze_with_retry(url)
 
     async def _analyze_with_retry(self, url: str) -> SiteAnalysis:
         """Analyze site with retry logic."""
         last_error = None
+        domain = urlparse(url).netloc
 
         for attempt in range(RETRY_ATTEMPTS + 1):
             try:
@@ -62,19 +65,21 @@ class EcommerceScraper:
                 if attempt < RETRY_ATTEMPTS:
                     await asyncio.sleep(DELAY_BETWEEN_REQUESTS * (attempt + 1))
 
-        # All retries failed
+        # All retries failed — still check if it's a known e-commerce domain
+        from analyzer import PageAnalyzer
+        base_domain = domain.removeprefix("www.")
+        is_ecom = base_domain in PageAnalyzer.KNOWN_ECOMMERCE_DOMAINS
+
         return SiteAnalysis(
             url=url,
-            domain=urlparse(url).netloc,
+            domain=domain,
+            is_ecommerce=is_ecom,
             error_message=str(last_error),
             security_issues=[SecurityIssue.BLOCKED],
         )
 
     async def _do_analyze(self, url: str) -> SiteAnalysis:
         """Perform the actual site analysis."""
-        if not url.startswith(("http://", "https://")):
-            url = f"https://{url}"
-
         domain = urlparse(url).netloc
         start_time = time.time()
 
@@ -83,21 +88,45 @@ class EcommerceScraper:
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Safari/537.36"
+                "Chrome/131.0.0.0 Safari/537.36"
             ),
+            locale="en-US",
+            timezone_id="America/New_York",
+            geolocation={"latitude": 40.7128, "longitude": -74.0060},
+            permissions=["geolocation"],
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
+                "Sec-Ch-Ua-Mobile": "?0",
+                "Sec-Ch-Ua-Platform": '"Windows"',
+                "Upgrade-Insecure-Requests": "1",
+            },
         )
 
         try:
             page = await context.new_page()
             page.set_default_timeout(BROWSER_TIMEOUT)
 
-            # Navigate to the site
+            # Anti-detection: hide webdriver flag
+            await page.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+                Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+                window.chrome = {runtime: {}};
+            """)
+
+            # Navigate to the site — use domcontentloaded for faster initial access
+            # (waiting for "load" gives bot detection scripts more time to activate)
             try:
                 response = await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_LOAD_TIMEOUT)
             except PlaywrightTimeout:
+                base_domain = domain.removeprefix("www.")
+                is_ecom = base_domain in PageAnalyzer.KNOWN_ECOMMERCE_DOMAINS
                 return SiteAnalysis(
                     url=url,
                     domain=domain,
+                    is_ecommerce=is_ecom,
                     error_message="Page load timeout",
                     security_issues=[SecurityIssue.TIMEOUT],
                 )
@@ -109,11 +138,17 @@ class EcommerceScraper:
                     error_message="No response received",
                 )
 
-            # Wait for dynamic content
+            # Wait for JS to render content
+            try:
+                await page.wait_for_load_state("networkidle", timeout=5000)
+            except PlaywrightTimeout:
+                pass  # Continue with whatever we have
+
+            # Extra wait for dynamic content
             await asyncio.sleep(2)
 
             # Scroll to trigger lazy loading
-            await self._scroll_page(page)
+            await self._scroll_page(page, scrolls=5)
 
             # Get page content
             html = await page.content()
@@ -149,8 +184,9 @@ class EcommerceScraper:
 
             # If we found listing pages, analyze one for better estimates
             if listing_urls and not product_urls:
+                best_listing = self._pick_best_listing_url(listing_urls)
                 analysis = await self._analyze_listing_page(
-                    page, listing_urls[0], analysis
+                    page, best_listing, analysis
                 )
 
             return analysis
@@ -159,13 +195,63 @@ class EcommerceScraper:
             await context.close()
             await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
 
-    async def _scroll_page(self, page: Page, scrolls: int = 3):
+    async def _scroll_page(self, page: Page, scrolls: int = 5):
         """Scroll page to trigger lazy loading."""
-        for _ in range(scrolls):
+        for i in range(scrolls):
             await page.evaluate("window.scrollBy(0, window.innerHeight)")
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.3 + (i * 0.1))
         # Scroll back to top
         await page.evaluate("window.scrollTo(0, 0)")
+        await asyncio.sleep(0.5)
+
+    @staticmethod
+    def _pick_best_listing_url(listing_urls: list[str]) -> str:
+        """Pick the best listing URL for follow-up analysis.
+
+        Prefers actual product category pages over info/policy pages.
+        """
+        import re
+
+        # Patterns that indicate a real product category (higher priority first)
+        good_patterns = [
+            r"/b/[^/]+/N-",         # Target, Home Depot category with facet
+            r"/b/[^/]+/\w+",        # Generic browse category
+            r"/shop/",              # Shop pages
+            r"/category/",          # Category pages
+            r"/collection/",        # Collection pages
+            r"/s\?",                # Search results
+            r"/search\?",           # Search results
+            r"/pl/\d+",             # Product list pages
+        ]
+
+        # Patterns that indicate info/non-product pages (skip these)
+        bad_patterns = [
+            r"/c/[a-z_-]*(policy|support|help|about|brand|contact|career|faq|terms|privacy|shipping|return|refund|rental|supplier|provider|diy|idea|service|project)",
+            r"#",                   # Anchor links to sections
+            r"/l/[^/]*circle",      # Loyalty program pages
+        ]
+
+        # Score each URL
+        scored = []
+        for url in listing_urls:
+            url_lower = url.lower()
+            # Skip known bad URLs
+            if any(re.search(bp, url_lower) for bp in bad_patterns):
+                continue
+            # Score based on good patterns
+            score = 0
+            for i, gp in enumerate(good_patterns):
+                if re.search(gp, url_lower):
+                    score = len(good_patterns) - i  # Higher score for earlier patterns
+                    break
+            scored.append((score, url))
+
+        if scored:
+            scored.sort(key=lambda x: x[0], reverse=True)
+            return scored[0][1]
+
+        # Fallback to first URL
+        return listing_urls[0]
 
     async def _analyze_listing_page(
         self, page: Page, listing_url: str, analysis: SiteAnalysis
@@ -173,6 +259,10 @@ class EcommerceScraper:
         """Analyze a listing page for better product/page estimates."""
         try:
             await page.goto(listing_url, wait_until="domcontentloaded", timeout=PAGE_LOAD_TIMEOUT)
+            try:
+                await page.wait_for_load_state("networkidle", timeout=5000)
+            except PlaywrightTimeout:
+                pass
             await asyncio.sleep(2)
             await self._scroll_page(page)
 
