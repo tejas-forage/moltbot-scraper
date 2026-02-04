@@ -1,15 +1,16 @@
 """MoltBot/OpenClaw WebSocket client for Python."""
 
 import asyncio
-import hashlib
-import hmac
 import json
+import logging
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
 import websockets
 from websockets.client import WebSocketClientProtocol
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -157,7 +158,7 @@ class MoltBotClient:
                 elif msg_type == "event":
                     # Server-push event
                     event_name = data.get("event")
-                    print(f"[EVENT] {event_name}: {data.get('payload')}")
+                    logger.debug("Event %s: %s", event_name, data.get("payload"))
                     if event_name in self._event_handlers:
                         for handler in self._event_handlers[event_name]:
                             try:
@@ -183,7 +184,7 @@ class MoltBotClient:
             "params": params or {},
         }
 
-        future = asyncio.get_event_loop().create_future()
+        future = asyncio.get_running_loop().create_future()
         self._pending_requests[req_id] = future
 
         await self.ws.send(json.dumps(msg))
@@ -222,9 +223,34 @@ class MoltBotClient:
             "idempotencyKey": uuid.uuid4().hex,
         })
 
-    async def invoke_agent(self, prompt: str, tools: list[str] | None = None) -> dict:
+    @staticmethod
+    def _extract_text_from_content(content) -> str:
+        """Extract plain text from various content formats.
+
+        Content can be:
+        - a string: return as-is
+        - a list of blocks: extract text from each block
+        - None/empty: return empty string
+        """
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts = []
+            for block in content:
+                if isinstance(block, dict):
+                    # Handle {"type":"text","text":"..."} blocks
+                    parts.append(block.get("text", ""))
+                elif isinstance(block, str):
+                    parts.append(block)
+            return "\n".join(parts)
+        return str(content) if content else ""
+
+    async def invoke_agent(self, prompt: str, tools: list[str] | None = None,
+                           session_key: str | None = None) -> dict:
         """Invoke an agent with a prompt and wait for response."""
-        session_key = "agent:main:main"
+        if session_key is None:
+            # Use a unique session per invocation to avoid stale context
+            session_key = f"agent:main:scraper-{uuid.uuid4().hex[:8]}"
         params = {
             "message": prompt,
             "sessionKey": session_key,
@@ -232,8 +258,9 @@ class MoltBotClient:
         }
 
         # Create a future to wait for completion
-        response_future = asyncio.get_event_loop().create_future()
+        response_future = asyncio.get_running_loop().create_future()
         run_id = None
+        streamed_text_parts: list[str] = []
 
         async def chat_handler(payload):
             nonlocal run_id
@@ -242,13 +269,25 @@ class MoltBotClient:
                 if not response_future.done():
                     response_future.set_result(payload)
 
-        # Register handler for chat events
+        async def agent_handler(payload):
+            nonlocal run_id
+            # Capture streamed text chunks as fallback
+            if payload.get("runId") == run_id and payload.get("stream") == "text":
+                data = payload.get("data", "")
+                if isinstance(data, str):
+                    streamed_text_parts.append(data)
+                elif isinstance(data, dict) and "text" in data:
+                    streamed_text_parts.append(data["text"])
+
+        # Register handlers
         self.on_event("chat", chat_handler)
+        self.on_event("agent", agent_handler)
 
         try:
             # Send the message
             result = await self.request("chat.send", params, timeout=30.0)
             run_id = result.get("runId")
+            logger.debug("chat.send result: %s", result)
 
             # Wait for completion
             await asyncio.wait_for(response_future, timeout=180.0)
@@ -256,25 +295,49 @@ class MoltBotClient:
             # Fetch the actual response from chat history
             history = await self.request("chat.history", {
                 "sessionKey": session_key,
-                "limit": 5,
+                "limit": 10,
             }, timeout=10.0)
 
-            # Find the assistant's response (last message)
-            messages = history.get("messages", [])
+            messages = history if isinstance(history, list) else history.get("messages", [])
+
+            # Find the assistant's response (last message with content)
             for msg in reversed(messages):
                 if msg.get("role") == "assistant":
-                    return {"content": msg.get("content", ""), "runId": run_id}
+                    # Check for LLM-level errors (e.g. auth failure, rate limit)
+                    if msg.get("stopReason") == "error" or msg.get("errorMessage"):
+                        error_msg = msg.get("errorMessage", "Unknown agent error")
+                        return {"content": "", "runId": run_id, "error": f"LLM error: {error_msg}"}
+                    raw_content = msg.get("content", "")
+                    text = self._extract_text_from_content(raw_content)
+                    if text.strip():
+                        return {"content": text, "runId": run_id}
 
-            return {"content": "", "runId": run_id, "error": "No assistant response found"}
+            # Fallback: use streamed text if history was empty
+            if streamed_text_parts:
+                return {"content": "".join(streamed_text_parts), "runId": run_id}
+
+            # Last resort: check the final event payload itself
+            final_payload = response_future.result() if response_future.done() else {}
+            payload_content = final_payload.get("content", "") or final_payload.get("text", "")
+            if payload_content:
+                text = self._extract_text_from_content(payload_content)
+                if text.strip():
+                    return {"content": text, "runId": run_id}
+
+            return {"content": "", "runId": run_id, "error": "Agent returned empty response"}
 
         except asyncio.TimeoutError:
-            return {"status": "timeout", "runId": run_id}
+            # Return any streamed text collected before timeout
+            if streamed_text_parts:
+                return {"content": "".join(streamed_text_parts), "runId": run_id}
+            return {"content": "", "status": "timeout", "runId": run_id}
         finally:
-            # Remove handler
-            if "chat" in self._event_handlers:
-                self._event_handlers["chat"] = [
-                    h for h in self._event_handlers["chat"] if h != chat_handler
-                ]
+            # Remove handlers
+            for event_name, handler in [("chat", chat_handler), ("agent", agent_handler)]:
+                if event_name in self._event_handlers:
+                    self._event_handlers[event_name] = [
+                        h for h in self._event_handlers[event_name] if h != handler
+                    ]
 
     async def invoke_node(self, command: str, params: dict | None = None) -> dict:
         """Invoke a node command."""

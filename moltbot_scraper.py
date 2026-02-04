@@ -92,9 +92,6 @@ class MoltBotScraper:
                 tools=["agent-browser", "playwright-cli"],  # Request browser tools
             )
 
-            # Debug: print raw response
-            print(f"[DEBUG] Agent response for {domain}: {result}")
-
             # Parse the agent's response
             return self._parse_agent_response(url, domain, result)
 
@@ -115,15 +112,52 @@ class MoltBotScraper:
     def _parse_agent_response(self, url: str, domain: str, result: Any) -> SiteAnalysis:
         """Parse MoltBot agent response into SiteAnalysis."""
         try:
-            # Extract JSON from agent response
-            response_text = str(result)
-            json_match = re.search(r"```json\s*(.*?)\s*```", response_text, re.DOTALL)
+            # Extract text content from agent result
+            if isinstance(result, dict):
+                # Check for error from invoke_agent
+                if result.get("error"):
+                    return SiteAnalysis(
+                        url=url,
+                        domain=domain,
+                        error_message=result["error"],
+                    )
+                if result.get("status") == "timeout":
+                    return SiteAnalysis(
+                        url=url,
+                        domain=domain,
+                        error_message="Agent timed out",
+                        security_issues=[SecurityIssue.TIMEOUT],
+                    )
+                response_text = result.get("content", "")
+            else:
+                response_text = str(result)
+
+            # Ensure response_text is a string
+            if not isinstance(response_text, str):
+                response_text = str(response_text)
+
+            response_text = response_text.strip()
+
+            if not response_text:
+                return SiteAnalysis(
+                    url=url,
+                    domain=domain,
+                    error_message="Agent returned empty response",
+                )
+
+            # Try to extract JSON from code fences first
+            json_match = re.search(r"```(?:json)?\s*(.*?)\s*```", response_text, re.DOTALL)
 
             if json_match:
                 data = json.loads(json_match.group(1))
             else:
-                # Try to parse entire response as JSON
-                data = json.loads(response_text)
+                # Try to find a JSON object anywhere in the response
+                brace_match = re.search(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", response_text, re.DOTALL)
+                if brace_match:
+                    data = json.loads(brace_match.group(0))
+                else:
+                    # Last resort: try entire response
+                    data = json.loads(response_text)
 
             # Map pagination type
             pagination_map = {
