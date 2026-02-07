@@ -246,7 +246,8 @@ class MoltBotClient:
         return str(content) if content else ""
 
     async def invoke_agent(self, prompt: str, tools: list[str] | None = None,
-                           session_key: str | None = None) -> dict:
+                           session_key: str | None = None,
+                           completion_timeout: float = 420.0) -> dict:
         """Invoke an agent with a prompt and wait for response."""
         if session_key is None:
             # Use a unique session per invocation to avoid stale context
@@ -290,7 +291,7 @@ class MoltBotClient:
             logger.debug("chat.send result: %s", result)
 
             # Wait for completion
-            await asyncio.wait_for(response_future, timeout=180.0)
+            await asyncio.wait_for(response_future, timeout=completion_timeout)
 
             # Fetch the actual response from chat history
             history = await self.request("chat.history", {

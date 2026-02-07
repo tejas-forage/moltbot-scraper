@@ -25,6 +25,11 @@ MAX_CONCURRENT = 5  # Max concurrent browser tabs
 RETRY_ATTEMPTS = 2
 DELAY_BETWEEN_REQUESTS = 1.0  # seconds
 
+# MoltBot agent settings
+MOLTBOT_AGENT_COMPLETION_TIMEOUT = 420  # 7 min for multi-step work
+MOLTBOT_AGENT_RETRY_TIMEOUT = 300      # 5 min for retry
+MOLTBOT_AGENT_CONCURRENCY = 2          # reduce from 3 to avoid overload
+
 # Detection patterns
 PRODUCT_URL_PATTERNS = [
     r"/product/",

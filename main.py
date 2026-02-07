@@ -186,8 +186,8 @@ async def main():
     """Run the e-commerce site analyzer."""
     # Parse args
     args = sys.argv[1:]
-    use_moltbot = "--moltbot" in args
-    args = [a for a in args if a != "--moltbot"]
+    use_moltbot = "--playwright" not in args  # MoltBot by default
+    args = [a for a in args if a not in ("--moltbot", "--playwright")]
 
     sites_file = args[0] if args else None
     gateway_url = args[1] if len(args) > 1 else None

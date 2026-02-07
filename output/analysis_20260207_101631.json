@@ -1,0 +1,255 @@
+[
+  {
+    "url": "https://amazon.com",
+    "domain": "amazon.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 10,
+    "listing_urls_sample": [
+      "https://www.amazon.com/gp/bestsellers/?ref_=nav_cs_bestsellers",
+      "https://www.amazon.com/books-used-books-textbooks/b/?ie=UTF8&node=283155&ref_=nav_cs_books",
+      "https://www.amazon.com/Best-Sellers-Electronics/zgbs/electronics/ref=zg_bs_electronics_sm",
+      "https://www.amazon.com/Best-Sellers-Home-Kitchen/zgbs/home-garden/ref=zg_bs_nav_home-garden_0",
+      "https://www.amazon.com/amazon-fashion/b/?ie=UTF8&node=7141123011&ref_=nav_cs_fashion"
+    ],
+    "product_urls_count": 10,
+    "product_urls_sample": [
+      "https://www.amazon.com/Apple-Kindle-Paperwhite-Bundle-Cinder/dp/B0FZQL2DYN/",
+      "https://www.amazon.com/Blink-Plus-Plan-monthly-auto-renewal/dp/B08JHCVHTY/",
+      "https://www.amazon.com/Apple-EarPods-Headphones-Built-Control/dp/B0DCH8VDXF/",
+      "https://www.amazon.com/Apple-Bluetooth-Headphones-Personalized-Effortless/dp/B0DGHMNQ5Z/",
+      "https://www.amazon.com/Roku-Streaming-Stick-HD-2025/dp/B0DXXYS4BJ/"
+    ],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "numbered_pages",
+    "security_issues": [],
+    "error_message": null,
+    "page_title": "Amazon.com: Online Shopping for Electronics, Apparel, Computers, Books, DVDs & more",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://ebay.com",
+    "domain": "ebay.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 10,
+    "listing_urls_sample": [
+      "https://www.ebay.com/b/adidas-Yeezy-Sneakers-for-Men/15709/bn_86578781",
+      "https://www.ebay.com/b/Collectible-Sneakers/bn_7000259435",
+      "https://www.ebay.com/b/Jordan-Sneakers-for-Men/15709/bn_96541848",
+      "https://www.ebay.com/b/New-Balance-Sneakers-for-Men/15709/bn_58747",
+      "https://www.ebay.com/b/Sneakers-for-Men/15709/bn_57918"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "numbered_pages",
+    "security_issues": [
+      "bot_protection"
+    ],
+    "error_message": null,
+    "page_title": "Electronics, Cars, Fashion, Collectibles & More | eBay",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://walmart.com",
+    "domain": "walmart.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 2,
+    "listing_urls_sample": [
+      "https://www.walmart.com/shop/deals/flash-deals",
+      "https://www.walmart.com/shop/deals"
+    ],
+    "product_urls_count": 10,
+    "product_urls_sample": [
+      "https://www.walmart.com/ip/PatPat-Baby-Girl-Clothes-Romper-and-Floral-Bell-Bottom-Pants-Outfit-Set-with-Headband-Pink-0-18-Months/17045262072",
+      "https://www.walmart.com/ip/3-75HP-Treadmill-300lb-Capacity-Incline-Folding-Treadmill-64-7-Smart-Program-7-5MPH-Speed-Smart-APP-Control-Treadmill-Home-Jogging-Walking-w-HiFi-Spe/17523261689",
+      "https://www.walmart.com/ip/Joyway-3-Piece-Carry-On-Luggage-Set-with-Swivel-TSA-Lock-and-Leather-Carry-Bag/7249156043",
+      "https://www.walmart.com/ip/100-Cotton-Egyptian-Full-Bedsheet-Set-1000-Thread-Count-Soft-Silky-Breathable-Deep-Pocket-4-Piece-Set-Pale-Yellow-by-Aireolux/435337138",
+      "https://www.walmart.com/ip/PatPat-Baby-Girl-Clothes-Long-Sleeve-Floral-Romper-Bell-Bottom-Pants-With-Headband-17045262072"
+    ],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "infinite_scroll",
+    "security_issues": [
+      "bot_protection"
+    ],
+    "error_message": null,
+    "page_title": "Walmart | Save Money. Live better.",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://target.com",
+    "domain": "target.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 10,
+    "listing_urls_sample": [
+      "https://target.com/c/valentine-s-day/-/N-5xt1e",
+      "https://target.com/c/shop-all-categories/-/N-5xsxf",
+      "https://target.com/c/electronics/-/N-5xtg6",
+      "https://target.com/c/home/-/N-5xtvd",
+      "https://target.com/c/kitchen-dining/-/N-hz89j"
+    ],
+    "product_urls_count": 4,
+    "product_urls_sample": [
+      "https://target.com/p/bad-bunny-34-debi-tirar-mas-fotos-34-vinyl/-/A-95042543",
+      "https://target.com/p/dantona-valuepaq-energy-ag13-alkaline-button-cell-batteries-10-pack/-/A-90040325",
+      "https://target.com/p/canon-powershot-g7-x-mark-iii-20-1-megapixel-digital-camera-black/-/A-91467769",
+      "https://target.com/p/gopro-hero/-/A-91347441"
+    ],
+    "has_product_pages": true,
+    "estimated_total_pages": 8,
+    "estimated_total_products": 150,
+    "pagination_type": "load_more_button",
+    "security_issues": [],
+    "error_message": null,
+    "page_title": "Target",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://bestbuy.com",
+    "domain": "bestbuy.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 1,
+    "listing_urls_sample": [
+      "https://www.bestbuy.com/"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": false,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "none",
+    "security_issues": [],
+    "error_message": "Browser control service became unavailable while interacting (could not click through country selector). web_fetch attempts also aborted; deeper navigation could not be completed.",
+    "page_title": "Best Buy International: Select your Country - Best Buy",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://etsy.com",
+    "domain": "etsy.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "none",
+    "security_issues": [
+      "cloudflare",
+      "bot_protection",
+      "blocked"
+    ],
+    "error_message": "Access blocked by site bot protection / Cloudflare challenge (access page showed 'Access is temporarily restricted'). Browser view returned a Cloudflare block; web_fetch returned 403 on main page but robots.txt was retrievable. No listing or product pages could be crawled due to blocking.",
+    "page_title": "",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://wayfair.com",
+    "domain": "wayfair.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 0,
+    "listing_urls_sample": [],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "infinite_scroll",
+    "security_issues": [
+      "bot_protection",
+      "blocked"
+    ],
+    "error_message": null,
+    "page_title": "Wayfair.com - Online Home Store for Furniture, Decor, Outdoors & More",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://homedepot.com",
+    "domain": "homedepot.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 10,
+    "listing_urls_sample": [
+      "https://www.homedepot.com/b/Appliances/N-5yc1vZbv1w",
+      "https://www.homedepot.com/b/Bath/N-5yc1vZbzb3",
+      "https://www.homedepot.com/b/Tools/N-5yc1vZc1xy",
+      "https://www.homedepot.com/b/Kitchen/N-5yc1vZar4i",
+      "https://www.homedepot.com/b/Lighting/N-5yc1vZbvn5"
+    ],
+    "product_urls_count": 10,
+    "product_urls_sample": [
+      "https://www.homedepot.com/p/Ram-Board-38-in-W-x-50-ft-L-Heavy-Duty-Temporary-Floor-Protection-Board-5008195/202829135",
+      "https://www.homedepot.com/p/PROTEX-4-ft-x-8-ft-Standard-Duty-Temporary-Floor-Protection-Sheet-500-Pallet-XB-32-P/311077665",
+      "https://www.homedepot.com/p/1-8-in-x-4-ft-x-8-ft-Hardboard-7969/202088220",
+      "https://www.homedepot.com/p/Plytanium-15-32-in-x-4-ft-x-8-ft-Southern-Pine-Plywood-184200/100053260",
+      "https://www.homedepot.com/p/Columbia-Forest-Products-3-4-in-x-2-ft-x-8-ft-PureBond-White-Oak-Plywood-Project-Panel-Free-Custom-Cut-Available-2618/204637008"
+    ],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "infinite_scroll",
+    "security_issues": [
+      "blocked",
+      "bot_protection"
+    ],
+    "error_message": null,
+    "page_title": "The Home Depot",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://lowes.com",
+    "domain": "lowes.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 6,
+    "listing_urls_sample": [
+      "https://www.lowes.com/",
+      "https://www.lowes.com/shop",
+      "https://www.lowes.com/sitemap.xml",
+      "https://www.lowes.com/robots.txt",
+      "https://www.lowes.com/pl/"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "numbered_pages",
+    "security_issues": [
+      "bot_protection",
+      "blocked"
+    ],
+    "error_message": null,
+    "page_title": "Lowe\u2019s Home Improvement",
+    "load_time_seconds": 0.0
+  },
+  {
+    "url": "https://costco.com",
+    "domain": "costco.com",
+    "is_ecommerce": true,
+    "listing_urls_count": 10,
+    "listing_urls_sample": [
+      "https://www.costco.com/grocery-household.html",
+      "https://www.costco.com/s?keyword=whilesupplieslast&COSTID=WSL_Homepage",
+      "https://www.costco.com/s?keyword=ViewNewItems&COSTID=WN_header",
+      "https://www.costco.com/s?keyword=treasurehunt",
+      "https://www.costco.com/appliances.html"
+    ],
+    "product_urls_count": 0,
+    "product_urls_sample": [],
+    "has_product_pages": true,
+    "estimated_total_pages": 0,
+    "estimated_total_products": 0,
+    "pagination_type": "numbered_pages",
+    "security_issues": [
+      "blocked"
+    ],
+    "error_message": null,
+    "page_title": "Welcome to Costco Wholesale",
+    "load_time_seconds": 0.0
+  }
+]

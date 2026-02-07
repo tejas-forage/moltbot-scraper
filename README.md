@@ -57,14 +57,6 @@ playwright install chromium
    python main.py
    ```
 
-### Standalone Mode (Without MoltBot)
-
-If MoltBot is not available, use the standalone Playwright scraper:
-
-```bash
-python standalone.py
-```
-
 ## Input Formats
 
 Supports multiple input formats:
@@ -103,17 +95,20 @@ BROWSER_HEADLESS = True      # Set False to see browser
 MAX_CONCURRENT = 5           # Concurrent browser tabs
 BROWSER_TIMEOUT = 30000      # Timeout in ms
 DELAY_BETWEEN_REQUESTS = 1.0 # Delay between sites
+
+# MoltBot agent settings
+MOLTBOT_AGENT_COMPLETION_TIMEOUT = 420  # 7 min for multi-step agent work
+MOLTBOT_AGENT_RETRY_TIMEOUT = 300      # 5 min for retry attempts
+MOLTBOT_AGENT_CONCURRENCY = 2          # Concurrent agent sessions
 ```
 
 ## Project Structure
 
 ```
 moltbot-scraper/
-├── main.py              # Entry point (uses MoltBot)
-├── standalone.py        # Standalone Playwright scraper
+├── main.py              # Entry point
 ├── moltbot_client.py    # MoltBot WebSocket client
-├── moltbot_scraper.py   # MoltBot-based scraper
-├── analyzer.py          # Page content analysis
+├── moltbot_scraper.py   # MoltBot-based scraper (phased prompt + retry logic)
 ├── models.py            # Data models
 ├── config.py            # Configuration
 ├── requirements.txt     # Dependencies
@@ -125,15 +120,15 @@ moltbot-scraper/
 
 ## How It Works
 
-1. **MoltBot Mode**: Connects to MoltBot Gateway via WebSocket (`ws://127.0.0.1:18789`), sends analysis prompts to MoltBot's AI agent which uses browser skills (agent-browser, playwright-cli) to visit and analyze sites.
+Connects to MoltBot Gateway via WebSocket (`ws://127.0.0.1:18789`) and sends a **phased strategic prompt** to the AI agent:
 
-2. **Standalone Mode**: Uses Playwright directly to automate browser, with built-in page analysis for detecting e-commerce patterns.
+1. **Navigate** — Visit the target URL, wait for full load, scroll to trigger lazy content
+2. **Handle obstacles** — Automatically deal with geo-redirects, cookie banners, CAPTCHAs, Cloudflare challenges, and access denials
+3. **Deep navigation** — Click into a category page from the nav menu to find more URLs beyond the homepage
+4. **Extract data** — Collect listing/product URLs, pagination info, product counts, and security issues
+5. **Retry on failure** — If blocked with no data, a follow-up prompt tries alternate strategies (sitemap, mobile site, alternate paths) on the same agent session
 
 ## MoltBot Skills Used
 
 - `agent-browser` - Headless browser with accessibility tree snapshots
 - `playwright-cli` - Browser automation for scraping
-
-
-
-
