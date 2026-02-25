@@ -2,9 +2,12 @@
 
 import asyncio
 import json
+import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+
+logging.basicConfig(level=logging.WARNING, format="%(name)s: %(message)s")
 
 import pandas as pd
 from rich.console import Console

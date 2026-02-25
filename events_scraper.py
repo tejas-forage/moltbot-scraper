@@ -21,35 +21,34 @@ from config import (
 logger = logging.getLogger(__name__)
 
 
-EVENTS_PROMPT = Template(r"""You are an expert web scraper agent. Extract ALL events from the venue/events page at $url.
+EVENTS_PROMPT = Template(r"""You are an expert web scraper agent. Your task: extract EVERY SINGLE event from the venue page at $url.
 
-TOOL STRATEGY:
-- Try **web_fetch** FIRST — it is faster and more reliable.
-- Only use the **browser** tool if web_fetch fails (empty, blocked, or JS-rendered content).
-- NEVER retry the same tool on the same URL more than once.
+== TOOL STRATEGY ==
+1. Try **web_fetch** on $url first.
+2. If web_fetch fails (403, blocked, "Just a moment", empty), immediately use the **browser** tool to navigate to $url instead. Do NOT retry web_fetch.
+3. If the page has no events, look for /events, /calendar, /shows, /schedule links and try those.
 
-== PHASE 1: NAVIGATE ==
-1. Use web_fetch to fetch $url
-2. If that returns no event data (empty or blocked), try the browser tool
-3. If the main URL has no events, look for links like /events, /calendar, /shows, /schedule on the page and try those
+== EXTRACTION RULES (READ CAREFULLY) ==
+Go through the ENTIRE page content systematically. Count every event listing/card you see. You MUST extract ALL of them — not just the first few.
 
-== PHASE 2: EXTRACT EVENTS ==
-From the page content, extract EVERY event you can find. For each event collect:
+For EACH event, extract these fields:
 
-- **event_name**: Name/title of the event
-- **date**: Date of the event (format: YYYY-MM-DD if possible, otherwise as shown)
-- **time**: Start time, doors time, or showtime (e.g. "8:00 PM", "Doors 7PM / Show 8PM")
-- **venue**: Venue name where the event takes place
-- **artist**: Performer/artist name (if different from event name)
-- **price**: Ticket price or price range (e.g. "$25", "$15-$45", "Free")
-- **ticket_url**: Direct URL to buy tickets
-- **event_url**: URL to the event detail page
-- **image_url**: URL of the event image/poster
-- **category**: Type of event (Concert, Comedy, Theater, Sports, Festival, etc.)
-- **description**: Short description if available (max 200 chars)
+- **event_name**: The actual title/name of the event (e.g. "Harry Potter and the Cursed Child").
+  IMPORTANT: The event name is the main headline/title, NOT the genre or category tag.
+  If you see a genre label like "Electronic" or "Concert" next to a title like "Alleycvt @ BMH", the event_name is "Alleycvt @ BMH", NOT "Electronic".
+- **date**: Date in YYYY-MM-DD format. For date ranges use "YYYY-MM-DD to YYYY-MM-DD". Extract from date elements like "Feb 21, 2026" -> "2026-02-21". ALWAYS extract the date if visible.
+- **time**: Doors/show time (e.g. "Doors: 7PM / Show: 8PM")
+- **venue**: Venue name
+- **artist**: Performer name if different from event_name
+- **price**: Ticket price or range (e.g. "$$25-$$45", "Free", "$$0.00")
+- **ticket_url**: The "Buy Tickets" link URL — look for <a> tags with text like "Buy Tickets", class "tickets", or href to ticket platforms
+- **event_url**: Link to the event detail/info page — look for "Learn More", "More Info" links, or the main title link
+- **image_url**: The event poster/image <img> src URL
+- **category**: Concert, Theater, Comedy, etc.
+- **description**: Brief description if available (max 200 chars)
 
-== PHASE 3: RETURN JSON ==
-Return your findings as a single JSON object. Do NOT wrap it in markdown code fences.
+== RETURN FORMAT ==
+Return a single JSON object (no markdown fences):
 
 {
   "venue_name": "Example Venue",
@@ -60,7 +59,7 @@ Return your findings as a single JSON object. Do NOT wrap it in markdown code fe
       "time": "8:00 PM",
       "venue": "Example Venue",
       "artist": "Artist Name",
-      "price": "$25-$45",
+      "price": "$$25-$$45",
       "ticket_url": "https://tickets.example.com/event/123",
       "event_url": "https://example.com/events/artist-live",
       "image_url": "https://example.com/images/artist.jpg",
@@ -72,12 +71,46 @@ Return your findings as a single JSON object. Do NOT wrap it in markdown code fe
   "error": null
 }
 
-CRITICAL RULES:
-- Extract ALL events visible on the page, not just a few.
-- Use empty string "" for any field you cannot find — do NOT use null.
-- If the page has pagination or "load more", note how many total events exist but only extract what's visible.
-- If blocked, return the JSON with error filled in and empty events list.
-- Stop making requests after 3 consecutive failures.
+== CRITICAL RULES ==
+- You MUST extract EVERY event on the page. If you see 12 events, return 12. If you see 6, return 6. Do NOT skip any.
+- Fill in EVERY field you can find — dates, prices, ticket URLs are almost always present on event listing pages. Look harder.
+- Use "" for fields truly not available — do NOT leave out fields that are on the page.
+- If the page has "Load More" or pagination, extract what is visible and set total_events_found to the count you extracted.
+- If completely blocked, return JSON with error and empty events list.
+- NEVER summarize or combine events. Each event is a separate entry.
+- Double-check: does your events count match the number of event cards/listings on the page?
+""")
+
+
+EVENTS_RETRY_PROMPT = Template(r"""You previously only extracted $count events from $url, but the page likely has MORE events.
+
+Use the **browser** tool to navigate to $url. Wait for the page to fully load (wait a few seconds for JS rendering). Then scroll down to see the FULL page.
+
+STEP 1: Count how many event cards/listings are on the page. Each event typically has a title, date, and "Buy Tickets" button.
+STEP 2: Extract EVERY single one — do NOT stop after a few.
+
+For EACH event you MUST extract:
+- **event_name**: The headline/title text (NOT genre labels like "Electronic" or "Concert")
+- **date**: Convert to YYYY-MM-DD (e.g. "Feb 21, 2026" -> "2026-02-21", "Apr 7 - 12, 2026" -> "2026-04-07 to 2026-04-12")
+- **time**: Doors/show times
+- **venue**: Venue name
+- **artist**: Performer if different from event_name
+- **price**: From price elements or ticket info (e.g. "$$25-$$60")
+- **ticket_url**: The href from "Buy Tickets" links — these often go to evenue.net, ticketmaster.com, seetickets.us, etc.
+- **event_url**: The href from the event title link or "Learn More" / "More Info" link
+- **image_url**: The <img> src for the event poster
+- **category**: Concert, Theater, Comedy, etc.
+- **description**: Brief description if available
+
+Return a single JSON object (no markdown fences):
+{
+  "venue_name": "Venue Name",
+  "events": [ ... one object per event ... ],
+  "total_events_found": <number>,
+  "error": null
+}
+
+CRITICAL: If you found $count before but there are actually more events on the page, you MUST include ALL of them this time.
 """)
 
 
@@ -119,8 +152,12 @@ class EventsScraper:
         if self.client:
             await self.client.disconnect()
 
-    async def scrape_venue(self, url: str) -> VenueResult:
-        """Scrape events from a single venue URL."""
+    async def scrape_venue(self, url: str, min_events_retry: int = 6) -> VenueResult:
+        """Scrape events from a single venue URL.
+
+        If the first attempt returns very few events (< min_events_retry),
+        retry once with a follow-up prompt asking the agent to look harder.
+        """
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
 
@@ -134,7 +171,7 @@ class EventsScraper:
             start_time = time.monotonic()
             result = await self.client.invoke_agent(
                 prompt=prompt,
-                tools=["agent-browser", "playwright-cli"],
+                tools=["web_fetch", "agent-browser", "playwright-cli"],
                 session_key=session_key,
                 completion_timeout=MOLTBOT_AGENT_COMPLETION_TIMEOUT,
             )
@@ -143,6 +180,43 @@ class EventsScraper:
             venue_result = self._parse_response(url, result)
             venue_result.venue_url = url
             venue_result.load_time_seconds = elapsed
+            logger.warning(
+                "1st pass: %d events from %s (%.1fs)",
+                len(venue_result.events), url, elapsed,
+            )
+
+            # Retry if too few events extracted (likely incomplete extraction)
+            # Also retry on soft errors (agent gave up but site may still work)
+            if len(venue_result.events) < min_events_retry:
+                logger.warning(
+                    "Only %d events (< %d threshold) from %s — retrying...",
+                    len(venue_result.events), min_events_retry, url,
+                )
+                retry_key = f"agent:events:retry-{uuid.uuid4().hex[:8]}"
+                retry_prompt = EVENTS_RETRY_PROMPT.substitute(
+                    url=url,
+                    count=len(venue_result.events),
+                )
+                retry_start = time.monotonic()
+                retry_result = await self.client.invoke_agent(
+                    prompt=retry_prompt,
+                    tools=["web_fetch", "agent-browser", "playwright-cli"],
+                    session_key=retry_key,
+                    completion_timeout=MOLTBOT_AGENT_COMPLETION_TIMEOUT,
+                )
+                retry_elapsed = time.monotonic() - retry_start
+
+                retry_venue = self._parse_response(url, retry_result)
+                logger.warning(
+                    "Retry: %d events from %s (%.1fs)",
+                    len(retry_venue.events), url, retry_elapsed,
+                )
+                # Use retry result if it found more events
+                if len(retry_venue.events) > len(venue_result.events):
+                    retry_venue.venue_url = url
+                    retry_venue.load_time_seconds = elapsed + retry_elapsed
+                    return retry_venue
+
             return venue_result
 
         except TimeoutError:
